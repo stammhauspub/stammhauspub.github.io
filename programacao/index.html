@@ -1,0 +1,30 @@
+<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Programação · Das Stammhaus Pub</title><meta name="description" content="Programação da Semana de Inauguração do Das Stammhaus Pub, em Canoinhas-SC.">
+<meta property="og:title" content="Programação · Das Stammhaus Pub"><meta property="og:description" content="Programação da Semana de Inauguração do Das Stammhaus Pub, em Canoinhas-SC."><meta property="og:type" content="website"><meta property="og:image" content="https://images.pexels.com/photos/5858067/pexels-photo-5858067.jpeg?auto=compress&cs=tinysrgb&w=1200">
+<meta name="theme-color" content="#113325">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site/site.css?v=9"></head><body data-sol>
+<header class="nav"><div class="nv"><ul><li><a class="l" href="/">Início</a></li><li><a class="l" href="/historia/">História</a></li><li><a class="l" href="/equipe/">Equipe</a></li><li><a class="l on" href="/programacao/">Programação</a></li></ul><a class="logo" href="/" aria-label="Das Stammhaus Pub"><img src="/assets/site/logo-horizontal.png" alt="Das Stammhaus Pub"></a><ul class="r"><li><a class="l" href="/cardapio/">Cardápio</a></li><li><a class="l" href="/fotos/">Fotos</a></li><li><a class="l" href="/reservas/">Reservas</a></li><li><a class="l int" href="/painel/">Gestão · interno</a></li></ul>
+<button class="burger" aria-label="Menu" aria-expanded="false"><span></span><span></span><span></span></button></div><nav class="menu"><a href="/">Início</a><a href="/historia/">História</a><a href="/equipe/">Equipe</a><a href="/programacao/">Programação</a><a href="/cardapio/">Cardápio</a><a href="/fotos/">Fotos</a><a href="/reservas/">Reservas</a><a href="/painel/">Gestão (acesso interno)</a></nav></header>
+<section class="pagehero" style="--bg:url('https://images.pexels.com/photos/5858067/pexels-photo-5858067.jpeg?auto=compress&cs=tinysrgb&w=1600')"><div class="wrap"><span class="eb">Semana de Inauguração</span><h1>Programação</h1>
+<p class="lead">Música ao vivo, com vagas limitadas. Reserve a sua noite.</p></div></section>
+<section><div class="wrap"><div class="days" id="prog"><p class="mut" id="progmsg">Carregando programação…</p></div>
+<div class="center" style="margin-top:38px"><div class="row" style="justify-content:center"><a class="btn" href="/reservas/">Reservar minha noite</a></div></div></div></section>
+<script>
+(function(){var el=document.getElementById('prog'),msg=document.getElementById('progmsg');
+function esc(s){return String(s||'').replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+fetch('https://script.google.com/macros/s/AKfycbxeidgTI_xPhbrBp2pAlgO0bFWjYilPLFq0VpeSGMhlrtVagLyR4FKXpYa4qPX6xZxD/exec?p=programacao').then(function(r){return r.json()}).then(function(d){
+ var L=(d&&d.noites)||[];if(!L.length){msg.textContent='Programação em breve.';return}
+ var M=['','Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+ el.innerHTML=L.map(function(n){var p=String(n.iso||'').split('-'),sem=String(n.label||'').split(',')[0];
+  return'<div class="day"><div class="d"><b>'+esc(p[2])+'</b><span>'+esc(sem)+'<br>'+esc(M[+p[1]]||'')+'</span></div><div class="a">'+esc(n.atracao||'A confirmar')+'</div><div class="s">'+esc(n.estilo)+'</div></div>'}).join('')
+}).catch(function(){msg.innerHTML='Não foi possível carregar a programação agora. <a href="/reservas/">Ver noites e reservar</a>.'})})();
+</script>
+<footer><div class="wrap"><div class="ft">
+<div><img src="/assets/site/logo-padrao.png" alt="Das Stammhaus Pub"><p class="mut">Um pub europeu no coração de Canoinhas - SC</p><p style="font-style:italic;font-family:'Playfair Display',serif;color:#d9a62e">O que é bom resiste ao tempo.</p></div>
+<div><h4>A casa</h4><ul><li><a href="/historia/">História e fundadores</a></li><li><a href="/equipe/">Equipe</a></li><li><a href="/programacao/">Programação</a></li><li><a href="/cardapio/">Cardápio</a></li><li><a href="/fotos/">Fotos</a></li></ul></div>
+<div><h4>Visite</h4><ul><li>Rua Getúlio Vargas, 839<br>Canoinhas · SC</li><li><a href="https://www.google.com/maps/dir/?api=1&destination=Rua+Get%C3%BAlio+Vargas+839+Canoinhas+SC" target="_blank" rel="noopener">Como chegar? →</a></li><li style="margin-top:14px"><a class="wab" href="https://wa.me/5547992505290" target="_blank" rel="noopener"><img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt=""><span>Fale conosco no WhatsApp<small>(47) 99250-5290</small></span></a></li><li><a href="/reservas/">Reservar minha noite</a></li><li><a href="/painel/">Gestão (acesso interno)</a></li></ul></div>
+</div><div class="copy"><span>© 2026 Das Stammhaus Pub · Canoinhas, SC</span><span>Imagens ilustrativas de banco de imagens (Pexels) · fotos reais em breve</span></div></div></footer>
+<a class="wafl" href="https://wa.me/5547992505290" target="_blank" rel="noopener" aria-label="Falar no WhatsApp"><img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt=""></a>
+<script src="/assets/site/site.js"></script></body></html>
