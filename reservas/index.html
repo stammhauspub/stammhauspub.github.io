@@ -219,10 +219,10 @@ details{margin-top:8px;font-size:12.5px;color:#b9b5a6}details code{display:block
     var L=$('noites');L.innerHTML='';
     NOITES.forEach(function(n){
       var b=document.createElement('button');b.className='noite tkc';b.type='button';
-      var v=n.lotado?['l','Lotado']:(n.vagas<INFO.max?['p','Últimas vagas']:['d','Disponível']);
+      var v=n.reservavel===false?['p','Reservas a partir de '+n.abreEm]:n.lotado?['l','Lotado']:(n.vagas<INFO.max?['p','Últimas vagas']:['d','Disponível']);
       b.setAttribute('aria-label',n.label+' · '+v[1]);
       b.innerHTML='<div class="tk'+(BANDAS[n.dia]&&BANDAS[n.dia].w?' wide':'')+'">'+tkHTML(n,v)+'</div>';
-      if(n.lotado){b.disabled=true}else b.onclick=function(){abrir(n)};
+      if(n.lotado||n.reservavel===false){b.disabled=true}else b.onclick=function(){abrir(n)};
       L.appendChild(b)});
     if(!NOITES.length)L.innerHTML='<p class="hint">Nenhuma noite disponível no momento.'+contato()+'</p>'}
   $('b-look').onclick=function(){$('lNome').value='';$('lTel').value='';$('e-look').textContent='';ir('s-look')};
