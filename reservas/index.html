@@ -101,6 +101,16 @@ details{margin-top:8px;font-size:12.5px;color:#b9b5a6}details code{display:block
 .qtd .on{background:var(--ouro);color:#0a2016;border-color:var(--ouro)}
 .pess{border-top:1px solid rgba(234,231,218,.18);margin-top:14px;padding-top:2px}.pess h3{font:700 16px/1.2 'Playfair Display',Georgia,serif;margin:12px 0 0;color:#d9a62e}
 .aviso-box{background:rgba(180,126,0,.14);border:1px solid rgba(180,126,0,.6);border-radius:10px;padding:12px 14px;font-size:14.5px;color:#f1e6c6;margin:0 0 14px}
+.cal{display:none}
+.cal-h,.cal-g{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}.cal-h{margin:14px 0 6px}.cal-h span{font:700 11px/1 Inter,sans-serif;letter-spacing:.16em;color:#d9a62e;text-align:center}
+.cd{min-height:138px;border-radius:10px;padding:8px 9px;background:rgba(234,231,218,.04);border:1px solid rgba(234,231,218,.1);display:flex;flex-direction:column;gap:3px;text-align:left;font:inherit;color:#EAE7DA;margin:0;width:auto}
+.cd.out{opacity:.28}
+.cd .dn{font:700 12px/1 Inter,sans-serif;color:#b7b2a2}.cd .dn i{font-style:normal;color:#d9a62e;margin-left:5px;letter-spacing:.1em}
+.cd.ev{background:#eee7d0;border:1.5px solid #B47E00;color:#16241b;cursor:pointer;box-shadow:0 2px 0 rgba(0,0,0,.25)}.cd.ev:hover{background:#f6f0dc;transform:translateY(-1px)}.cd.ev .dn{color:#4c5a4f}.cd.ev .dn i{color:#7a5400}
+.cd .at{font:800 14.5px/1.15 'Playfair Display',Georgia,serif;margin-top:2px}.cd .es{font:italic 600 12px/1.2 'Playfair Display',Georgia,serif;color:#3b4a3f}.cd .sh{font:700 11px/1.2 Inter,sans-serif;color:#4c5a4f;letter-spacing:.04em}
+.cd .stt{margin-top:auto;align-self:flex-start;font:800 10px/1 Inter,sans-serif;letter-spacing:.06em;text-transform:uppercase;border-radius:9px;padding:4px 8px;color:#fff;background:#1f6b2c}.cd .stt.p{background:#8a5d00}.cd .stt.l{background:#b03a18}
+.cd.ev:disabled{cursor:default;opacity:.8}.cd.ev:disabled:hover{transform:none;background:#eee7d0}
+@media(min-width:900px){#noites{display:none}.cal{display:block}body.wide-home .wrap{max-width:1060px}body.wide-home #s-home>h1,body.wide-home #s-home>.lead{max-width:640px}}
 .hp{position:absolute;left:-9999px;width:1px;height:1px;opacity:0}
 </style>
 </head>
@@ -114,6 +124,7 @@ details{margin-top:8px;font-size:12.5px;color:#b9b5a6}details code{display:block
     <h1>Faça parte da noite que vai entrar para a história de Canoinhas</h1>
     <p class="lead">Música ao vivo, chopp de qualidade e a atmosfera de um pub europeu feito para durar. Escolha a sua noite e garanta o seu lugar.</p>
     <div id="noites"><p class="hint">Carregando as noites…</p></div>
+    <div id="cal" class="cal"></div>
     <p class="err" id="home-msg"></p>
     <hr class="sep">
     <button class="ghost" id="b-look">Já tenho uma reserva</button>
@@ -191,7 +202,7 @@ details{margin-top:8px;font-size:12.5px;color:#b9b5a6}details code{display:block
     else fetch(EXEC,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({fn:fn,args:a})}).then(function(r){return r.json()}).then(ok,bad)})}
   function zapLink(msg){return 'https://wa.me/'+ZAP+'?text='+encodeURIComponent(msg||'Olá! Preciso de ajuda com a reserva da inauguração do Das Stammhaus.')}
   function contato(msg){return ' <a class="zap" target="_blank" rel="noopener" href="'+zapLink(msg)+'">Falar com a equipe no WhatsApp</a>'}
-  function ir(id){TELAS.forEach(function(t){$(t).classList.toggle('hide',t!==id)});window.scrollTo(0,0)}
+  function ir(id){TELAS.forEach(function(t){$(t).classList.toggle('hide',t!==id)});document.body.classList.toggle('wide-home',id==='s-home');window.scrollTo(0,0)}
   function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
   function brl(v){return Number(v).toFixed(2).replace('.',',')}
   function busy(b,on,txt){b.disabled=on;if(on){if(txt){b.dataset.t=b.textContent;b.textContent=txt}}else if(b.dataset.t){b.textContent=b.dataset.t;delete b.dataset.t}}
@@ -215,8 +226,29 @@ details{margin-top:8px;font-size:12.5px;color:#b9b5a6}details code{display:block
   /* ---- HOME ---- */
   function carregar(){
     $('home-msg').textContent='';
-    run('dados').then(function(r){INFO=r.info||INFO;NOITES=r.noites||[];aplicaInfo();listar()},function(e){$('noites').innerHTML='';falha($('home-msg'),e,'dados')})}
+    run('dados').then(function(r){INFO=r.info||INFO;NOITES=r.noites||[];HOJE=r.hoje||'';aplicaInfo();listar()},function(e){$('noites').innerHTML='';falha($('home-msg'),e,'dados')})}
+  var HOJE='',MQ=window.matchMedia?window.matchMedia('(min-width:900px)'):null;
+  function statusN(n){return n.lotado?['l','Lotado']:(n.vagas<INFO.max?['p','Últimas vagas']:['d','Disponível'])}
+  function isoD(s){var m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(s);return m?new Date(Date.UTC(+m[1],+m[2]-1,+m[3])):null}
+  function isoS(d){return d.getUTCFullYear()+'-'+('0'+(d.getUTCMonth()+1)).slice(-2)+'-'+('0'+d.getUTCDate()).slice(-2)}
+  /* calendário (PC): semana de domingo a sábado, de hoje até hoje + 30 dias */
+  function calendario(){
+    var C=$('cal');C.innerHTML='';if(!NOITES.length){C.innerHTML='<p class="hint">Nenhuma noite disponível no momento.'+contato()+'</p>';return}
+    var h0=isoD(HOJE)||isoD(NOITES[0].iso),dias=INFO.dias||30,fim=new Date(h0.getTime()+dias*864e5),ini=new Date(h0.getTime()-h0.getUTCDay()*864e5),
+        ult=new Date(fim.getTime()+(6-fim.getUTCDay())*864e5),by={};
+    NOITES.forEach(function(n){by[n.iso]=n});
+    var h='<div class="cal-h">'+['DOM','SEG','TER','QUA','QUI','SEX','SÁB'].map(function(x){return'<span>'+x+'</span>'}).join('')+'</div><div class="cal-g">';
+    for(var d=new Date(ini.getTime());d<=ult;d=new Date(d.getTime()+864e5)){
+      var s=isoS(d),n=by[s],fora=d<h0||d>fim,mes=(d.getUTCDate()===1||d.getTime()===ini.getTime())?'<i>'+MESES[d.getUTCMonth()+1].toUpperCase()+'</i>':'';
+      if(n&&!fora){var v=statusN(n);
+        h+='<button type="button" class="cd ev" data-i="'+s+'"'+(n.lotado?' disabled':'')+' aria-label="'+esc(n.label+' · '+v[1])+'"><span class="dn">'+d.getUTCDate()+mes+'</span><span class="at">'+esc(String(n.atracao||'').split('·')[0].trim())+'</span><span class="es">'+esc(n.estilo||(String(n.atracao||'').split('·')[1]||'').trim())+'</span><span class="sh">Show '+showTxt(n.show)+'</span><span class="stt '+v[0]+'">'+v[1]+'</span></button>'}
+      else h+='<div class="cd'+(fora?' out':'')+'"><span class="dn">'+d.getUTCDate()+mes+'</span></div>'}
+    C.innerHTML=h+'</div>';
+    [].forEach.call(C.querySelectorAll('.cd.ev'),function(b){if(!b.disabled)b.onclick=function(){abrir(by[b.getAttribute('data-i')])}})}
+  if(MQ){var rl=function(){if(NOITES.length||$('cal').innerHTML)listar()};if(MQ.addEventListener)MQ.addEventListener('change',rl);else if(MQ.addListener)MQ.addListener(rl)}
   function listar(){
+    if(MQ&&MQ.matches){$('noites').innerHTML='';return calendario()}
+    $('cal').innerHTML='';
     var L=$('noites');L.innerHTML='';
     NOITES.forEach(function(n){
       var b=document.createElement('button');b.className='noite tkc';b.type='button';
@@ -334,7 +366,7 @@ details{margin-top:8px;font-size:12.5px;color:#b9b5a6}details code{display:block
 
   function aviso(t,l){$('a-titulo').textContent=t;$('a-lead').innerHTML=l;ir('s-aviso')}
   $('a-voltar').onclick=function(){ir('s-home')};
-  carregar();
+  document.body.classList.add('wide-home');carregar();
 })();
 </script>
 </body>
