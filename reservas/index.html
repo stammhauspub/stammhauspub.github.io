@@ -133,7 +133,7 @@ details{margin-top:8px;font-size:12.5px;color:#b9b5a6}details code{display:block
   <section id="s-form" class="hide">
     <h1>Reserve o seu lugar na história</h1>
     <div class="tk" id="tk" role="img" aria-label="Ingresso da noite"></div>
-    <p class="tk-note">Entrada de R$ <span class="vl">40,00</span> por pessoa, acertada junto à comanda na noite.</p>
+    <p class="tk-note" id="tk-note"></p>
     <div class="who"><b id="f-dia"></b><span id="f-at"></span></div>
     <div class="card">
       <label>Para quantas pessoas é a reserva?</label>
@@ -205,6 +205,8 @@ details{margin-top:8px;font-size:12.5px;color:#b9b5a6}details code{display:block
   function ir(id){TELAS.forEach(function(t){$(t).classList.toggle('hide',t!==id)});document.body.classList.toggle('wide-home',id==='s-home');window.scrollTo(0,0)}
   function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
   function brl(v){return Number(v).toFixed(2).replace('.',',')}
+  function vOf(n){return n&&n.valor!=null&&n.valor!==''?Number(n.valor):Number(INFO.valor)}   // 0 = grátis
+  function vtxt(n){return vOf(n)===0?'Grátis':'R$ '+brl(vOf(n))}
   function busy(b,on,txt){b.disabled=on;if(on){if(txt){b.dataset.t=b.textContent;b.textContent=txt}}else if(b.dataset.t){b.textContent=b.dataset.t;delete b.dataset.t}}
   function falha(el,e,ctx){
     var i=(e&&e.codigo)?e:{codigo:'C01',titulo:TIPOS_C.C01,funcao:ctx,detalhe:String(e&&e.message||e||'')};
@@ -218,7 +220,6 @@ details{margin-top:8px;font-size:12.5px;color:#b9b5a6}details code{display:block
     var d=el.value.replace(/\D/g,'').slice(0,11),o='';
     if(d.length)o='('+d.slice(0,2);if(d.length>2)o+=') '+d.slice(2,7);if(d.length>7)o+='-'+d.slice(7);el.value=o})}
   function aplicaInfo(){
-    [].forEach.call(document.querySelectorAll('.vl'),function(e){e.textContent=brl(INFO.valor)});
     [].forEach.call(document.querySelectorAll('.ate'),function(e){e.textContent=INFO.ate});
     [].forEach.call(document.querySelectorAll('.mx'),function(e){e.textContent=INFO.max});
     var d=String(INFO.whatsapp||'').replace(/\D/g,'');if(d.length>=12){ZAP=d;$('zap-rodape').href=zapLink()}}
@@ -241,7 +242,7 @@ details{margin-top:8px;font-size:12.5px;color:#b9b5a6}details code{display:block
     for(var d=new Date(ini.getTime());d<=ult;d=new Date(d.getTime()+864e5)){
       var s=isoS(d),n=by[s],fora=d<h0||d>fim,mes=(d.getUTCDate()===1||d.getTime()===ini.getTime())?'<i>'+MESES[d.getUTCMonth()+1].toUpperCase()+'</i>':'';
       if(n&&!fora){var v=statusN(n);
-        h+='<button type="button" class="cd ev" data-i="'+s+'"'+(n.lotado?' disabled':'')+' aria-label="'+esc(n.label+' · '+v[1])+'"><span class="dn">'+d.getUTCDate()+mes+'</span><span class="at">'+esc(String(n.atracao||'').split('·')[0].trim())+'</span><span class="es">'+esc(n.estilo||(String(n.atracao||'').split('·')[1]||'').trim())+'</span><span class="sh">Show '+showTxt(n.show)+'</span><span class="stt '+v[0]+'">'+v[1]+'</span></button>'}
+        h+='<button type="button" class="cd ev" data-i="'+s+'"'+(n.lotado?' disabled':'')+' aria-label="'+esc(n.label+' · '+v[1])+'"><span class="dn">'+d.getUTCDate()+mes+'</span><span class="at">'+esc(String(n.atracao||'').split('·')[0].trim())+'</span><span class="es">'+esc(n.estilo||(String(n.atracao||'').split('·')[1]||'').trim())+'</span><span class="sh">Show '+showTxt(n.show)+(vOf(n)===0?' · Entrada grátis':'')+'</span><span class="stt '+v[0]+'">'+v[1]+'</span></button>'}
       else h+='<div class="cd'+(fora?' out':'')+'"><span class="dn">'+d.getUTCDate()+mes+'</span></div>'}
     C.innerHTML=h+'</div>';
     [].forEach.call(C.querySelectorAll('.cd.ev'),function(b){if(!b.disabled)b.onclick=function(){abrir(by[b.getAttribute('data-i')])}})}
@@ -269,7 +270,7 @@ details{margin-top:8px;font-size:12.5px;color:#b9b5a6}details code{display:block
   function tkHTML(n,vagas){
     var b=BANDAS[n&&n.dia]||GEN;
     var m=String(n.label||'').match(/^([^,]+),\s*(\d{2})\/(\d{2})/),at=String(n.atracao||'').split('·');
-    var cel=vagas?'<div><small>Vagas</small><b class="st '+vagas[0]+'">'+vagas[1]+'</b></div>':'<div class="pv"><small>Entrada</small><b>R$ <span class="vl">'+esc(brl(n.valor||INFO.valor||40))+'</span></b></div>';
+    var cel=vagas?'<div><small>Vagas'+(vOf(n)===0?' · entrada grátis':'')+'</small><b class="st '+vagas[0]+'">'+vagas[1]+'</b></div>':'<div class="pv"><small>Entrada</small><b>'+vtxt(n)+'</b></div>';
     if(b.gen)return '<div class="tk-in"><div class="tk-main"><div class="tk-top">Música ao vivo</div><div class="tk-logo"><div class="tk-nm">'+esc(at[0].trim())+'</div></div><div class="tk-gen">'+esc(n.estilo||(at[1]?at[1].trim():''))+'</div></div>'
      +'<div class="tk-stub"><img class="tk-pub" src="'+LOGOD+'" alt="Das Stammhaus Pub"><span class="dw">'+(m?m[1].replace('-feira','').toUpperCase():'')+'</span><span class="dd">'+(m?m[2]:'')+'</span><span class="dm">'+(m?MESES[+m[3]]||'':'')+'</span></div></div>'
      +'<div class="tk-hr"><div><small>Abertura</small><b>18h</b></div><div><small>Show</small><b>'+showTxt(n.show)+'</b></div>'+cel+'</div>';
@@ -285,7 +286,7 @@ details{margin-top:8px;font-size:12.5px;color:#b9b5a6}details code{display:block
 
   /* ---- FORMULÁRIO ---- */
   function abrir(n){
-    N=n;QTD=1;[].forEach.call(document.querySelectorAll('#s-form .vl'),function(e){e.textContent=brl(n.valor||INFO.valor)});$('f-dia').textContent=n.label;$('f-at').textContent=n.atracao?' · '+n.atracao:'';$('e-geral').textContent='';$('site').value='';
+    N=n;QTD=1;$('tk-note').innerHTML=Number(vOf(n))===0?'Entrada <b>gratuita</b> nesta noite.':'Entrada de R$ '+brl(vOf(n))+' por pessoa, acertada junto à comanda na noite.';$('f-dia').textContent=n.label;$('f-at').textContent=n.atracao?' · '+n.atracao:'';$('e-geral').textContent='';$('site').value='';
     $('pessoas').innerHTML='';pessoas(true);ticket();ir('s-form')}
   function botoesQtd(){
     var q=$('qtd');q.innerHTML='';var mx=N.vagas>0?Math.min(INFO.max,N.vagas):1;   // só as quantidades que cabem na noite (vagas restantes, até o máximo por reserva)
@@ -331,7 +332,6 @@ details{margin-top:8px;font-size:12.5px;color:#b9b5a6}details code{display:block
 
   /* ---- SUCESSO / CONSULTA ---- */
   function sucesso(s){
-    var tot=s.pessoas.length*(s.valor||(N&&N.valor)||INFO.valor);
     $('ok-lead').textContent='Mal podemos esperar para receber '+(s.pessoas.length>1?'vocês':'você')+' nesta noite especial, '+s.pessoas[0].nome.split(' ')[0]+'.';
     $('ok-sum').innerHTML='<dt>Noite</dt><dd>'+esc(s.diaLabel)+(s.atracao?' · '+esc(s.atracao):'')+'</dd>'
       +'<dt>Pessoas ('+s.pessoas.length+')</dt><dd>'+s.pessoas.map(function(p,i){return esc(p.nome)+'<br><span class="hint">'+esc(p.tel)+(i===0?' · titular':'')+'</span>'}).join('<br>')+'</dd>'
