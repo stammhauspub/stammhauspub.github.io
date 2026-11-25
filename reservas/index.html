@@ -21,7 +21,7 @@ p.lead{margin:0 0 18px;color:#cfcabb}
 .card{background:rgba(7,28,18,.42);border:1px solid rgba(180,126,0,.6);border-radius:14px;padding:20px;margin-bottom:16px}
 label{display:block;font-weight:600;margin:14px 0 6px;font-size:15px}
 .hint{font-size:13.5px;color:#b9b5a6;margin:6px 0 0}
-input[type=text],input[type=tel]{width:100%;padding:14px 14px;font-size:17px;border-radius:10px;border:1.5px solid rgba(234,231,218,.35);background:var(--fundo-escuro);color:var(--off);outline:none}
+input[type=text],input[type=tel],input[type=number]{width:100%;padding:14px 14px;font-size:17px;border-radius:10px;border:1.5px solid rgba(234,231,218,.35);background:var(--fundo-escuro);color:var(--off);outline:none}
 input:focus{border-color:var(--ouro);box-shadow:0 0 0 3px rgba(180,126,0,.25)}
 input.bad{border-color:var(--laranja)}
 .err{color:#ff9d83;font-size:14px;margin:6px 0 0;min-height:0}
@@ -96,7 +96,7 @@ details{margin-top:8px;font-size:12.5px;color:#b9b5a6}details code{display:block
 .noite .bd{position:absolute;right:14px;top:16px;font:700 11px/1 Inter,sans-serif;letter-spacing:.06em;padding:6px 10px;border-radius:99px;text-transform:uppercase}
 .bd.d{background:#2f7a3b;color:#fff}.bd.p{background:var(--ouro);color:#0a2016}.bd.l{background:var(--laranja);color:#fff}
 .noite[disabled]{opacity:.6;cursor:not-allowed}
-.qtd{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:6px}.qtd button{margin:0;padding:12px 0}
+.qtd{margin-top:6px}.qtd input.qn{width:110px;text-align:center;font-size:22px;font-weight:700;padding:12px 0;-moz-appearance:textfield}.qtd input.qn::-webkit-inner-spin-button{opacity:1}
 .qtd .on{background:var(--ouro);color:#0a2016;border-color:var(--ouro)}
 .and{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px}.and button{margin:0;padding:12px 8px;line-height:1.25}.and b{display:block;font:700 16px/1.2 'Playfair Display',Georgia,serif}.and small{display:block;font-size:12.5px;font-weight:400;opacity:.85;margin-top:2px}.and .on{background:var(--ouro);color:#0a2016;border-color:var(--ouro)}
 .pess{border-top:1px solid rgba(234,231,218,.18);margin-top:14px;padding-top:2px}.pess h3{font:700 16px/1.2 'Playfair Display',Georgia,serif;margin:12px 0 0;color:#d9a62e}
@@ -321,36 +321,40 @@ details{margin-top:8px;font-size:12.5px;color:#b9b5a6}details code{display:block
   function abrir(n){
     N=n;QTD=1;ANDAR='';[].forEach.call(document.querySelectorAll('#andar button'),function(x){x.classList.remove('on')});$('tk-note').innerHTML=Number(vOf(n))===0?'Entrada <b>gratuita</b> nesta noite.':'Entrada de R$ '+brl(vOf(n))+' por pessoa, acertada junto à comanda na noite.';$('f-dia').textContent=n.label;$('f-at').textContent=n.atracao?' · '+n.atracao:'';$('e-geral').textContent='';$('site').value='';
     $('pessoas').innerHTML='';pessoas(true);ticket();carregaArtes(n);ir('s-form')}
+  function qtdInput(box,mx,get,set){
+    var el=box.querySelector('input');
+    if(!el){box.innerHTML='<input type="number" inputmode="numeric" min="1" step="1" class="qn" autocomplete="off">';el=box.querySelector('input');
+      el.addEventListener('input',function(){var v=parseInt(el.value,10);if(isNaN(v)||v<1)return;var m=+el.max;if(v>m){v=m;el.value=m}set(v)});
+      el.addEventListener('blur',function(){el.value=get()})}
+    el.max=mx;el.min=1;if(document.activeElement!==el)el.value=get();return el}
   function botoesQtd(){
-    var q=$('qtd');q.innerHTML='';var mx=N.vagas>0?Math.min(INFO.max,N.vagas):1;   // só as quantidades que cabem na noite (vagas restantes, até o máximo por reserva)
+    var mx=N.vagas>0?Math.min(INFO.max,N.vagas):1;   // máximo: vagas restantes da noite, até o limite por reserva
     if(QTD>mx)QTD=mx;
-    for(var i=1;i<=mx;i++){(function(i){var b=document.createElement('button');b.type='button';b.className='ghost'+(i===QTD?' on':'');b.textContent=i;
-      b.onclick=function(){QTD=i;pessoas(false)};q.appendChild(b)})(i)}
-    $('qtd-h').innerHTML=esc((N.vagas>0&&N.vagas<INFO.max?'Restam apenas '+N.vagas+' vaga'+(N.vagas>1?'s':'')+' nesta noite. ':'')+'Pedimos nome e celular de cada pessoa para agilizar o cadastro de todos no sistema e tornar a sua chegada e a sua experiência muito mais fluidas.')+'<br><b>Reservas para mais de '+INFO.max+' pessoas:</b> fale com a nossa equipe pelo <a class="zap" target="_blank" rel="noopener" href="'+zapLink('Olá! Quero fazer uma reserva para mais de '+INFO.max+' pessoas no Das Stammhaus Pub.')+'">WhatsApp</a>.'}
+    qtdInput($('qtd'),mx,function(){return QTD},function(v){QTD=v;pessoas(false)});
+    $('qtd-h').innerHTML=esc((N.vagas>0&&N.vagas<INFO.max?'Restam apenas '+N.vagas+' vaga'+(N.vagas>1?'s':'')+' nesta noite. ':'Máximo de '+mx+' pessoas por reserva. ')+'Pedimos o nome completo de cada pessoa e o celular do titular para agilizar o cadastro de todos no sistema e tornar a sua chegada e a sua experiência muito mais fluidas.')+'<br><b>Reservas para mais de '+INFO.max+' pessoas:</b> fale com a nossa equipe pelo <a class="zap" target="_blank" rel="noopener" href="'+zapLink('Olá! Quero fazer uma reserva para mais de '+INFO.max+' pessoas no Das Stammhaus Pub.')+'">WhatsApp</a>.'}
   function pessoas(zera){
-    var P=[].slice.call(document.querySelectorAll('#pessoas .pess')),old=P.map(function(p){return[p.querySelector('.pn').value,p.querySelector('.pt').value]});
+    var P=[].slice.call(document.querySelectorAll('#pessoas .pess')),old=P.map(function(p){var t=p.querySelector('.pt');return[p.querySelector('.pn').value,t?t.value:'']});
     var box=$('pessoas');box.innerHTML='';
     for(var i=0;i<QTD;i++){(function(i){
       var d=document.createElement('div');d.className='pess';
       d.innerHTML='<h3>'+(i===0?'Titular da reserva':'Pessoa '+(i+1))+'</h3>'
         +'<label for="pn'+i+'">Nome completo</label><input class="pn" id="pn'+i+'" type="text" autocapitalize="words" autocomplete="'+(i===0?'name':'off')+'"><p class="err" id="e-nome'+i+'"></p>'
-        +'<label for="pt'+i+'">Celular (com DDD)</label><input class="pt" id="pt'+i+'" type="tel" inputmode="numeric" placeholder="(42) 99999-9999" maxlength="15" autocomplete="'+(i===0?'tel':'off')+'"><p class="err" id="e-tel'+i+'"></p>';
+        +(i===0?'<label for="pt'+i+'">Celular do titular (com DDD)</label><input class="pt" id="pt'+i+'" type="tel" inputmode="numeric" placeholder="(42) 99999-9999" maxlength="15" autocomplete="tel"><p class="err" id="e-tel'+i+'"></p>':'');
       box.appendChild(d);var a=d.querySelector('.pn'),b=d.querySelector('.pt');
-      if(!zera&&old[i]){a.value=old[i][0];b.value=old[i][1]}
-      mascara(b);a.addEventListener('input',function(){$('e-nome'+i).textContent='';a.classList.remove('bad')});b.addEventListener('input',function(){$('e-tel'+i).textContent='';b.classList.remove('bad')})})(i)}
+      if(!zera&&old[i]){a.value=old[i][0];if(b)b.value=old[i][1]}
+      if(b){mascara(b);b.addEventListener('input',function(){$('e-tel'+i).textContent='';b.classList.remove('bad')})}a.addEventListener('input',function(){$('e-nome'+i).textContent='';a.classList.remove('bad')})})(i)}
     botoesQtd()}
   $('f-voltar').onclick=function(){ir('s-home')};
   function erro(k,msg){var e=$('e-'+k);if(e)e.textContent=msg;var m=k.match(/^(nome|tel)(\d+)$/);if(m){var i=document.getElementById((m[1]==='nome'?'pn':'pt')+m[2]);if(i)i.classList.add('bad')}}
   function limpa(){for(var i=0;i<INFO.max;i++){['nome','tel'].forEach(function(k){var e=$('e-'+k+i);if(e)e.textContent=''})}$('e-geral').textContent='';$('e-andar').textContent='';[].forEach.call(document.querySelectorAll('#pessoas .bad'),function(x){x.classList.remove('bad')})}
-  function coleta(){return [].map.call(document.querySelectorAll('#pessoas .pess'),function(p){return{nome:p.querySelector('.pn').value.replace(/\s+/g,' ').trim(),tel:p.querySelector('.pt').value}})}
+  function coleta(){return [].map.call(document.querySelectorAll('#pessoas .pess'),function(p){var t=p.querySelector('.pt');return{nome:p.querySelector('.pn').value.replace(/\s+/g,' ').trim(),tel:t?t.value:''}})}
   function validar(){
     limpa();var ok=true,P=coleta(),ts={},ns={};
     P.forEach(function(p,i){
       var quem=i===0?'seu':'da pessoa '+(i+1);
       if(!NOME_RE.test(p.nome)||p.nome.split(' ').length<2){erro('nome'+i,'Informe o nome completo '+quem+' (nome e sobrenome).');ok=false}
       else{var k=p.nome.toLowerCase();if(ns[k]){erro('nome'+i,'Este nome aparece duas vezes na reserva.');ok=false}ns[k]=1}
-      if(!TEL_RE.test(p.tel)){erro('tel'+i,'Informe o celular '+quem+' no formato (42) 99999-9999.');ok=false}
-      else{if(ts[p.tel]){erro('tel'+i,'Cada pessoa precisa de um número de celular próprio.');ok=false}ts[p.tel]=1}});
+      if(i===0&&!TEL_RE.test(p.tel)){erro('tel'+i,'Informe o seu celular no formato (42) 99999-9999.');ok=false}});
     if(!ANDAR){erro('andar','Escolha onde prefere ficar: térreo ou andar superior.');ok=false}
     return ok}
   $('btn-res').onclick=function(){
@@ -368,7 +372,7 @@ details{margin-top:8px;font-size:12.5px;color:#b9b5a6}details code{display:block
   function sucesso(s){
     $('ok-lead').textContent='Mal podemos esperar para receber '+(s.pessoas.length>1?'vocês':'você')+' nesta noite especial, '+s.pessoas[0].nome.split(' ')[0]+'.';
     $('ok-sum').innerHTML='<dt>Noite</dt><dd>'+esc(s.diaLabel)+(s.atracao?' · '+esc(s.atracao):'')+'</dd>'
-      +'<dt>Pessoas ('+s.pessoas.length+')</dt><dd>'+s.pessoas.map(function(p,i){return esc(p.nome)+'<br><span class="hint">'+esc(p.tel)+(i===0?' · titular':'')+'</span>'}).join('<br>')+'</dd>'
+      +'<dt>Pessoas ('+s.pessoas.length+')</dt><dd>'+s.pessoas.map(function(p,i){return esc(p.nome)+(p.tel||i===0?'<br><span class="hint">'+esc(p.tel)+(i===0?(p.tel?' · ':'')+'titular':'')+'</span>':'')}).join('<br>')+'</dd>'
       +(s.andar?'<dt>Ambiente</dt><dd>'+esc(s.andar)+(s.andar==='Térreo'?' · mais perto do palco':' · mais calmo')+'</dd>':'')
       +'<dt>Reserva válida até</dt><dd>'+esc(s.ate||INFO.ate)+'</dd>'
       +'<dt>Protocolo</dt><dd><b>'+esc(s.protocolo)+'</b></dd>';
@@ -387,32 +391,28 @@ details{margin-top:8px;font-size:12.5px;color:#b9b5a6}details code{display:block
   var ADD_Q=1;
   function addMax(){return Math.max(0,INFO.max-RES.pessoas.length)}
   function addPessoas(){
-    var box=$('add-pessoas'),old=[].map.call(box.querySelectorAll('.pess'),function(p){return[p.querySelector('.pn').value,p.querySelector('.pt').value]});box.innerHTML='';
+    var box=$('add-pessoas'),old=[].map.call(box.querySelectorAll('.pn'),function(x){return x.value});box.innerHTML='';
     for(var i=0;i<ADD_Q;i++){(function(i){
       var d=document.createElement('div');d.className='pess';
-      d.innerHTML='<h3>Pessoa '+(RES.pessoas.length+i+1)+'</h3><label for="an'+i+'">Nome completo</label><input class="pn" id="an'+i+'" type="text" autocapitalize="words" autocomplete="off"><p class="err" id="e-an'+i+'"></p>'
-        +'<label for="at'+i+'">Celular (com DDD)</label><input class="pt" id="at'+i+'" type="tel" inputmode="numeric" placeholder="(42) 99999-9999" maxlength="15" autocomplete="off"><p class="err" id="e-at'+i+'"></p>';
-      box.appendChild(d);var a=d.querySelector('.pn'),b=d.querySelector('.pt');if(old[i]){a.value=old[i][0];b.value=old[i][1]}mascara(b)})(i)}
-    var q=$('add-qtd');q.innerHTML='';
-    for(var k=1;k<=addMax();k++){(function(k){var b=document.createElement('button');b.type='button';b.className='ghost'+(k===ADD_Q?' on':'');b.textContent=k;b.onclick=function(){ADD_Q=k;addPessoas()};q.appendChild(b)})(k)}}
+      d.innerHTML='<h3>Pessoa '+(RES.pessoas.length+i+1)+'</h3><label for="an'+i+'">Nome completo</label><input class="pn" id="an'+i+'" type="text" autocapitalize="words" autocomplete="off"><p class="err" id="e-an'+i+'"></p>';
+      box.appendChild(d);if(old[i])d.querySelector('.pn').value=old[i]})(i)}
+    qtdInput($('add-qtd'),addMax(),function(){return ADD_Q},function(v){ADD_Q=v;addPessoas()})}
   $('ok-add').onclick=function(){
-    if(!RES||addMax()<1)return;ADD_Q=1;$('add-err').textContent='';$('add-pessoas').innerHTML='';
+    if(!RES||addMax()<1)return;ADD_Q=1;$('add-err').textContent='';$('add-pessoas').innerHTML='';$('add-qtd').innerHTML='';
     $('add-lead').textContent='Reserva '+RES.protocolo+' · '+RES.diaLabel+' · hoje com '+RES.pessoas.length+' pessoa'+(RES.pessoas.length>1?'s':'')+'. Cabem mais '+addMax()+' nesta reserva.';
     addPessoas();ir('s-add')};
   $('add-voltar').onclick=function(){sucesso(RES);$('ok-lead').textContent='Esta é a sua reserva.'};
   $('add-ok').onclick=function(){
-    var P=[].map.call(document.querySelectorAll('#add-pessoas .pess'),function(p){return{nome:p.querySelector('.pn').value.replace(/\s+/g,' ').trim(),tel:p.querySelector('.pt').value}}),ok=true,ts={},ns={};
-    $('add-err').textContent='';P.forEach(function(p,i){$('e-an'+i).textContent='';$('e-at'+i).textContent=''});
+    var P=[].map.call(document.querySelectorAll('#add-pessoas .pess'),function(p){return{nome:p.querySelector('.pn').value.replace(/\s+/g,' ').trim(),tel:''}}),ok=true,ns={};
+    $('add-err').textContent='';P.forEach(function(p,i){$('e-an'+i).textContent=''});
     P.forEach(function(p,i){var q='da pessoa '+(RES.pessoas.length+i+1);
       if(!NOME_RE.test(p.nome)||p.nome.split(' ').length<2){$('e-an'+i).textContent='Informe o nome completo '+q+' (nome e sobrenome).';ok=false}
-      else{var k=p.nome.toLowerCase();if(ns[k]){$('e-an'+i).textContent='Este nome aparece duas vezes.';ok=false}ns[k]=1}
-      if(!TEL_RE.test(p.tel)){$('e-at'+i).textContent='Informe o celular '+q+' no formato (42) 99999-9999.';ok=false}
-      else{if(ts[p.tel]){$('e-at'+i).textContent='Cada pessoa precisa de um número de celular próprio.';ok=false}ts[p.tel]=1}});
+      else{var k=p.nome.toLowerCase();if(ns[k]){$('e-an'+i).textContent='Este nome aparece duas vezes.';ok=false}ns[k]=1}});
     if(!ok)return;var b=$('add-ok');busy(b,true,'Adicionando…');
     run('adicionarPessoas',RES.protocolo,RES_NOME,RES_TEL,P).then(function(r){busy(b,false);
       if(r.ok){RES=r.resumo;carregar();sucesso(RES);$('ok-lead').textContent='Pessoas adicionadas à sua reserva.';return}
       var e=$('add-err');
-      if(r.code==='invalido'||r.code==='ja_consta'){var m=(r.campo||'').match(/^(nome|tel)(\d+)$/);if(m)$('e-'+(m[1]==='nome'?'an':'at')+m[2]).textContent=r.msg;else e.textContent=r.msg||'Confira os dados informados.';return}
+      if(r.code==='invalido'||r.code==='ja_consta'){var m=(r.campo||'').match(/^(nome|tel)(\d+)$/);if(m&&m[1]==='nome')$('e-an'+m[2]).textContent=r.msg;else e.textContent=r.msg||'Confira os dados informados.';return}
       if(r.code==='lotado'){e.textContent='Esta noite esgotou: não há mais vagas para adicionar.';return}
       if(r.code==='sem_vagas'){e.innerHTML='Restam apenas <b>'+r.restantes+'</b> vaga(s) nesta noite. Reduza a quantidade e tente de novo.';return}
       if(r.code==='limite'){e.textContent='Muitas tentativas. Aguarde alguns minutos e tente de novo.';return}
