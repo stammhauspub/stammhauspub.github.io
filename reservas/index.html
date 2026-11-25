@@ -157,8 +157,22 @@ details{margin-top:8px;font-size:12.5px;color:#b9b5a6}details code{display:block
     <p class="lead" id="ok-lead"></p>
     <div class="card" style="text-align:left"><dl class="sum" id="ok-sum" style="margin:0"></dl></div>
     <div class="aviso-box" style="text-align:left"><b>Chegue cedo:</b> a reserva vale até as <span class="ate">20h</span>. Para consultar ou cancelar depois, basta usar o seu nome e celular.</div>
+    <button class="btn" id="ok-add">Adicionar mais pessoas</button>
     <button class="danger" id="ok-cancel">Cancelar esta reserva</button>
     <button class="ghost" id="ok-home">Voltar ao início</button>
+  </section>
+
+  <section id="s-add" class="hide">
+    <h1>Adicionar pessoas à reserva</h1>
+    <p class="lead" id="add-lead"></p>
+    <div class="card">
+      <label>Quantas pessoas deseja adicionar?</label>
+      <div class="qtd" id="add-qtd"></div>
+      <div id="add-pessoas"></div>
+      <p class="err" id="add-err"></p>
+      <button class="btn" id="add-ok">Adicionar à reserva</button>
+      <button class="ghost" id="add-voltar">Voltar</button>
+    </div>
   </section>
 
   <section id="s-look" class="hide">
@@ -190,7 +204,7 @@ details{margin-top:8px;font-size:12.5px;color:#b9b5a6}details code{display:block
   var CLI=(function(){try{var k=sessionStorage.getItem('cli');if(!k){k=Math.random().toString(36).slice(2)+Date.now().toString(36);sessionStorage.setItem('cli',k)}return k}catch(e){return Math.random().toString(36).slice(2)}})();
   var ANDAR='',ZAP='5547992505290', INFO={valor:40,ate:'20h',max:4}, NOITES=[], N=null, QTD=1, RES=null, RES_TEL='', RES_NOME='';
   var TEL_RE=/^\([1-9]\d\) 9\d{4}-\d{4}$/, NOME_RE=/^[A-Za-zÀ-ÖØ-öø-ÿ][A-Za-zÀ-ÖØ-öø-ÿ'.\- ]{3,78}$/;
-  var TELAS=['s-home','s-form','s-ok','s-look','s-aviso'];
+  var TELAS=['s-home','s-form','s-ok','s-add','s-look','s-aviso'];
   var IMG='https://stammhauspub.github.io/assets/cards/';
 
   var EXEC='https://script.google.com/macros/s/AKfycbxeidgTI_xPhbrBp2pAlgO0bFWjYilPLFq0VpeSGMhlrtVagLyR4FKXpYa4qPX6xZxD/exec';   /* vazio dentro do Apps Script; na página estática do site recebe o endereço do web app (evita a tela branca nos navegadores embutidos do Instagram/WhatsApp) */
@@ -358,7 +372,7 @@ details{margin-top:8px;font-size:12.5px;color:#b9b5a6}details code{display:block
       +(s.andar?'<dt>Ambiente</dt><dd>'+esc(s.andar)+(s.andar==='Térreo'?' · mais perto do palco':' · mais calmo')+'</dd>':'')
       +'<dt>Reserva válida até</dt><dd>'+esc(s.ate||INFO.ate)+'</dd>'
       +'<dt>Protocolo</dt><dd><b>'+esc(s.protocolo)+'</b></dd>';
-    $('ok-cancel').classList.remove('hide');ir('s-ok')}
+    $('ok-cancel').classList.remove('hide');$('ok-add').classList.toggle('hide',s.pessoas.length>=INFO.max);ir('s-ok')}
   $('ok-home').onclick=function(){RES=null;carregar();ir('s-home')};
   $('ok-cancel').onclick=function(){
     var b=$('ok-cancel');
@@ -368,6 +382,42 @@ details{margin-top:8px;font-size:12.5px;color:#b9b5a6}details code{display:block
       if(r.ok){carregar();aviso('Reserva cancelada','Tudo certo, as vagas foram liberadas. Se mudar de ideia, é só reservar de novo.')}
       else if(r.code==='limite')falha_msg('Muitas tentativas. Aguarde alguns minutos.');else falha_msg('Não foi possível cancelar: reserva não encontrada ou já cancelada.')},
       function(e){busy(b,false);falha_msg('Falha ao cancelar. Tente de novo ou fale com a equipe.')})};
+
+  /* ---- ADICIONAR PESSOAS À RESERVA ---- */
+  var ADD_Q=1;
+  function addMax(){return Math.max(0,INFO.max-RES.pessoas.length)}
+  function addPessoas(){
+    var box=$('add-pessoas'),old=[].map.call(box.querySelectorAll('.pess'),function(p){return[p.querySelector('.pn').value,p.querySelector('.pt').value]});box.innerHTML='';
+    for(var i=0;i<ADD_Q;i++){(function(i){
+      var d=document.createElement('div');d.className='pess';
+      d.innerHTML='<h3>Pessoa '+(RES.pessoas.length+i+1)+'</h3><label for="an'+i+'">Nome completo</label><input class="pn" id="an'+i+'" type="text" autocapitalize="words" autocomplete="off"><p class="err" id="e-an'+i+'"></p>'
+        +'<label for="at'+i+'">Celular (com DDD)</label><input class="pt" id="at'+i+'" type="tel" inputmode="numeric" placeholder="(42) 99999-9999" maxlength="15" autocomplete="off"><p class="err" id="e-at'+i+'"></p>';
+      box.appendChild(d);var a=d.querySelector('.pn'),b=d.querySelector('.pt');if(old[i]){a.value=old[i][0];b.value=old[i][1]}mascara(b)})(i)}
+    var q=$('add-qtd');q.innerHTML='';
+    for(var k=1;k<=addMax();k++){(function(k){var b=document.createElement('button');b.type='button';b.className='ghost'+(k===ADD_Q?' on':'');b.textContent=k;b.onclick=function(){ADD_Q=k;addPessoas()};q.appendChild(b)})(k)}}
+  $('ok-add').onclick=function(){
+    if(!RES||addMax()<1)return;ADD_Q=1;$('add-err').textContent='';$('add-pessoas').innerHTML='';
+    $('add-lead').textContent='Reserva '+RES.protocolo+' · '+RES.diaLabel+' · hoje com '+RES.pessoas.length+' pessoa'+(RES.pessoas.length>1?'s':'')+'. Cabem mais '+addMax()+' nesta reserva.';
+    addPessoas();ir('s-add')};
+  $('add-voltar').onclick=function(){sucesso(RES);$('ok-lead').textContent='Esta é a sua reserva.'};
+  $('add-ok').onclick=function(){
+    var P=[].map.call(document.querySelectorAll('#add-pessoas .pess'),function(p){return{nome:p.querySelector('.pn').value.replace(/\s+/g,' ').trim(),tel:p.querySelector('.pt').value}}),ok=true,ts={},ns={};
+    $('add-err').textContent='';P.forEach(function(p,i){$('e-an'+i).textContent='';$('e-at'+i).textContent=''});
+    P.forEach(function(p,i){var q='da pessoa '+(RES.pessoas.length+i+1);
+      if(!NOME_RE.test(p.nome)||p.nome.split(' ').length<2){$('e-an'+i).textContent='Informe o nome completo '+q+' (nome e sobrenome).';ok=false}
+      else{var k=p.nome.toLowerCase();if(ns[k]){$('e-an'+i).textContent='Este nome aparece duas vezes.';ok=false}ns[k]=1}
+      if(!TEL_RE.test(p.tel)){$('e-at'+i).textContent='Informe o celular '+q+' no formato (42) 99999-9999.';ok=false}
+      else{if(ts[p.tel]){$('e-at'+i).textContent='Cada pessoa precisa de um número de celular próprio.';ok=false}ts[p.tel]=1}});
+    if(!ok)return;var b=$('add-ok');busy(b,true,'Adicionando…');
+    run('adicionarPessoas',RES.protocolo,RES_NOME,RES_TEL,P).then(function(r){busy(b,false);
+      if(r.ok){RES=r.resumo;carregar();sucesso(RES);$('ok-lead').textContent='Pessoas adicionadas à sua reserva.';return}
+      var e=$('add-err');
+      if(r.code==='invalido'||r.code==='ja_consta'){var m=(r.campo||'').match(/^(nome|tel)(\d+)$/);if(m)$('e-'+(m[1]==='nome'?'an':'at')+m[2]).textContent=r.msg;else e.textContent=r.msg||'Confira os dados informados.';return}
+      if(r.code==='lotado'){e.textContent='Esta noite esgotou: não há mais vagas para adicionar.';return}
+      if(r.code==='sem_vagas'){e.innerHTML='Restam apenas <b>'+r.restantes+'</b> vaga(s) nesta noite. Reduza a quantidade e tente de novo.';return}
+      if(r.code==='limite'){e.textContent='Muitas tentativas. Aguarde alguns minutos e tente de novo.';return}
+      e.textContent='Não foi possível adicionar: reserva não encontrada ou já cancelada.'},
+      function(x){busy(b,false);falha($('add-err'),x,'adicionarPessoas')})};
   function falha_msg(m){aviso('Atenção',esc(m)+contato('Olá! Preciso de ajuda com a minha reserva '+(RES?RES.protocolo:'')+'.'))}
   mascara($('lTel'));
   $('l-voltar').onclick=function(){ir('s-home')};
