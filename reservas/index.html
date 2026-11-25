@@ -269,7 +269,7 @@ details{margin-top:8px;font-size:12.5px;color:#b9b5a6}details code{display:block
   function tkHTML(n,vagas){
     var b=BANDAS[n&&n.dia]||GEN;
     var m=String(n.label||'').match(/^([^,]+),\s*(\d{2})\/(\d{2})/),at=String(n.atracao||'').split('·');
-    var cel=vagas?'<div><small>Vagas</small><b class="st '+vagas[0]+'">'+vagas[1]+'</b></div>':'<div class="pv"><small>Entrada</small><b>R$ <span class="vl">'+esc(brl(INFO.valor||40))+'</span></b></div>';
+    var cel=vagas?'<div><small>Vagas</small><b class="st '+vagas[0]+'">'+vagas[1]+'</b></div>':'<div class="pv"><small>Entrada</small><b>R$ <span class="vl">'+esc(brl(n.valor||INFO.valor||40))+'</span></b></div>';
     if(b.gen)return '<div class="tk-in"><div class="tk-main"><div class="tk-top">Música ao vivo</div><div class="tk-logo"><div class="tk-nm">'+esc(at[0].trim())+'</div></div><div class="tk-gen">'+esc(n.estilo||(at[1]?at[1].trim():''))+'</div></div>'
      +'<div class="tk-stub"><img class="tk-pub" src="'+LOGOD+'" alt="Das Stammhaus Pub"><span class="dw">'+(m?m[1].replace('-feira','').toUpperCase():'')+'</span><span class="dd">'+(m?m[2]:'')+'</span><span class="dm">'+(m?MESES[+m[3]]||'':'')+'</span></div></div>'
      +'<div class="tk-hr"><div><small>Abertura</small><b>18h</b></div><div><small>Show</small><b>'+showTxt(n.show)+'</b></div>'+cel+'</div>';
@@ -285,7 +285,7 @@ details{margin-top:8px;font-size:12.5px;color:#b9b5a6}details code{display:block
 
   /* ---- FORMULÁRIO ---- */
   function abrir(n){
-    N=n;QTD=1;$('f-dia').textContent=n.label;$('f-at').textContent=n.atracao?' · '+n.atracao:'';$('e-geral').textContent='';$('site').value='';
+    N=n;QTD=1;[].forEach.call(document.querySelectorAll('#s-form .vl'),function(e){e.textContent=brl(n.valor||INFO.valor)});$('f-dia').textContent=n.label;$('f-at').textContent=n.atracao?' · '+n.atracao:'';$('e-geral').textContent='';$('site').value='';
     $('pessoas').innerHTML='';pessoas(true);ticket();ir('s-form')}
   function botoesQtd(){
     var q=$('qtd');q.innerHTML='';var mx=N.vagas>0?Math.min(INFO.max,N.vagas):1;   // só as quantidades que cabem na noite (vagas restantes, até o máximo por reserva)
@@ -331,7 +331,7 @@ details{margin-top:8px;font-size:12.5px;color:#b9b5a6}details code{display:block
 
   /* ---- SUCESSO / CONSULTA ---- */
   function sucesso(s){
-    var tot=s.pessoas.length*(s.valor||INFO.valor);
+    var tot=s.pessoas.length*(s.valor||(N&&N.valor)||INFO.valor);
     $('ok-lead').textContent='Mal podemos esperar para receber '+(s.pessoas.length>1?'vocês':'você')+' nesta noite especial, '+s.pessoas[0].nome.split(' ')[0]+'.';
     $('ok-sum').innerHTML='<dt>Noite</dt><dd>'+esc(s.diaLabel)+(s.atracao?' · '+esc(s.atracao):'')+'</dd>'
       +'<dt>Pessoas ('+s.pessoas.length+')</dt><dd>'+s.pessoas.map(function(p,i){return esc(p.nome)+'<br><span class="hint">'+esc(p.tel)+(i===0?' · titular':'')+'</span>'}).join('<br>')+'</dd>'
